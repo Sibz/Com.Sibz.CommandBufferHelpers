@@ -13,7 +13,7 @@ namespace Sibz.CommandBufferHelpers
         private EntityCommandBuffer commandBuffer;
 
         public EntityCommandBuffer Buffer =>
-            commandBuffer.IsCreated ? (commandBuffer = bufferSystem.CreateCommandBuffer()) : commandBuffer;
+            !commandBuffer.IsCreated ? (commandBuffer = bufferSystem.CreateCommandBuffer()) : commandBuffer;
 
         public EntityCommandBuffer.Concurrent Concurrent =>
             Buffer.ToConcurrent();
