@@ -1,4 +1,5 @@
-﻿# Command Buffer Helpers
+﻿
+# Command Buffer Helpers
 
 ### CommandBuffer classes
 These create a command buffer and cache it, if the command buffer is processed, it creates a new one. 
