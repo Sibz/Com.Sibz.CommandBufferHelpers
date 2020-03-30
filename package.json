@@ -1,0 +1,12 @@
+{
+  "author": "Steven Turner",
+  "dependencies": {
+    "com.unity.entities": "0.8.0-preview.8"
+  },
+  "deprecated": false,
+  "description": "Classes to assist in creating entity command buffers",
+  "displayName": "Sibz: Command Buffer Helpers",
+  "license": "ISC",
+  "name": "com.sibz.command-buffer-helpers",
+  "version": "0.1.1"
+}
