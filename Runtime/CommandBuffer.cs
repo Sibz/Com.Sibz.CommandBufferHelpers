@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using Unity.Entities;
 using Unity.Jobs;
 
@@ -16,7 +17,8 @@ namespace Sibz.CommandBufferHelpers
         private EntityCommandBuffer commandBuffer;
 
         public EntityCommandBuffer Buffer =>
-            !commandBuffer.IsCreated ? (commandBuffer = bufferSystem.CreateCommandBuffer()) : commandBuffer;
+            // ReSharper disable once PossibleNullReferenceException
+            !commandBuffer.IsCreated || (bool)commandBuffer.GetType().GetField("m_DidPlayback", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(commandBuffer) ? (commandBuffer = bufferSystem.CreateCommandBuffer()) : commandBuffer;
 
         public EntityCommandBuffer.Concurrent Concurrent =>
             Buffer.ToConcurrent();
