@@ -1,4 +1,4 @@
-
+﻿
 # Command Buffer Helpers
 
 [Repository On Github](https://github.com/Sibz/Com.Sibz.CommandBufferHelpers)
@@ -41,6 +41,7 @@ buffer.AddJobDependency(inputDeps);
 
 ### EntityCommandBuffer Extensions
 #### CreateSingleton
+These extensions apply to these command buffer classes, EntityCommandBuffers and their Concurrent version.
 ```c#
 Entity entity = commandBuffer.CreateSingleton<MyComponent>();
 // Or with data
