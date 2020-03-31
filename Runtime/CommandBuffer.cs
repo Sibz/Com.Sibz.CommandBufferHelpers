@@ -1,4 +1,6 @@
 ﻿using Unity.Entities;
+using Unity.Jobs;
+
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MemberCanBeProtected.Global
 // ReSharper disable UnusedType.Global
@@ -22,6 +24,8 @@ namespace Sibz.CommandBufferHelpers
         {
             bufferSystem = world.GetExistingSystem<T>();
         }
+
+        public void AddJobDependency(JobHandle jobHandle) => bufferSystem.AddJobHandleForProducer(jobHandle);
     }
 
     public class BeginInitCommandBuffer : CommandBuffer<BeginInitializationEntityCommandBufferSystem>

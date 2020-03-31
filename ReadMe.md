@@ -1,4 +1,4 @@
-﻿
+
 # Command Buffer Helpers
 
 [Repository On Github](https://github.com/Sibz/Com.Sibz.CommandBufferHelpers)
@@ -31,9 +31,12 @@ var job = new job { buffer = Buffer.Concurrent }
 
 // Job System Foreach variation
 var concBuffer = buffer.Concurrent;
-Entities.WithAll<MyComponent>().ForEach((Entity entity) => {
+inputDeps = Entities.WithAll<MyComponent>().ForEach((Entity entity) => {
   concBuffer.RemoveComponent<MyComponent>(entity)
-});
+}).Schedule(inputDeps);
+
+// Don't forget this
+buffer.AddJobDependency(inputDeps);
 ```
 
 ### EntityCommandBuffer Extensions
