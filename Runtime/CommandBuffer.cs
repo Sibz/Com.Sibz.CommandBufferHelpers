@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using Unity.Jobs;
 
 // ReSharper disable MemberCanBePrivate.Global
@@ -23,6 +24,10 @@ namespace Sibz.CommandBufferHelpers
         public CommandBuffer(World world)
         {
             bufferSystem = world.GetExistingSystem<T>();
+            if (bufferSystem is null)
+            {
+                throw new NullReferenceException($"{this.GetType().Name}: Can not be created in world ({world.Name}) as buffer system of type {typeof(T).Name} does not exist.");
+            }
         }
 
         public void AddJobDependency(JobHandle jobHandle) => bufferSystem.AddJobHandleForProducer(jobHandle);
