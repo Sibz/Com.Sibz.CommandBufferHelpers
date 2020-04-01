@@ -1,5 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Reflection;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 
@@ -10,15 +15,30 @@ using Unity.Jobs;
 
 namespace Sibz.CommandBufferHelpers
 {
-    public class CommandBuffer<T>
-    where T: EntityCommandBufferSystem
+    public interface ICommandBuffer
+    {
+        EntityCommandBuffer.Concurrent Concurrent { get; }
+        EntityCommandBuffer Buffer { get; }
+        void AddJobDependency(JobHandle jobHandle);
+    }
+    public class CommandBuffer<T> : ICommandBuffer
+        where T : EntityCommandBufferSystem
     {
         private readonly T bufferSystem;
         private EntityCommandBuffer commandBuffer;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        private List<EntityCommandBuffer> pendingBuffersList;
+#else
+        private NativeList<EntityCommandBuffer> pendingBuffersList;
+#endif
 
         public EntityCommandBuffer Buffer =>
             // ReSharper disable once PossibleNullReferenceException
-            !commandBuffer.IsCreated || (bool)commandBuffer.GetType().GetField("m_DidPlayback", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(commandBuffer) ? (commandBuffer = bufferSystem.CreateCommandBuffer()) : commandBuffer;
+            commandBuffer.IsCreated && !DidPlayback
+                ? commandBuffer
+                : commandBuffer = bufferSystem.CreateCommandBuffer();
+
+        private bool DidPlayback => !pendingBuffersList.Contains(commandBuffer);
 
         public EntityCommandBuffer.Concurrent Concurrent =>
             Buffer.ToConcurrent();
@@ -28,8 +48,25 @@ namespace Sibz.CommandBufferHelpers
             bufferSystem = world.GetExistingSystem<T>();
             if (bufferSystem is null)
             {
-                throw new NullReferenceException($"{this.GetType().Name}: Can not be created in world ({world.Name}) as buffer system of type {typeof(T).Name} does not exist.");
+                throw new NullReferenceException(
+                    $"{GetType().Name}: Can not be created in world ({world.Name}) as buffer system of type {typeof(T).Name} does not exist.");
             }
+
+            PropertyInfo propInfo;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if ((propInfo = typeof(EntityCommandBufferSystem)
+                    .GetProperty("PendingBuffers", BindingFlags.NonPublic | BindingFlags.Instance)) is null ||
+                ((pendingBuffersList = propInfo.GetValue(bufferSystem) as List<EntityCommandBuffer>) is null)
+            )
+                throw new InvalidOperationException(
+                    $"{GetType().Name}: Unable to ascertain if buffer has been played back");
+#else
+            if ((propInfo = typeof(T)
+                    .GetProperty("PendingBuffers", BindingFlags.NonPublic | BindingFlags.Instance)) is null ||
+                !(pendingBuffersList = (NativeList<EntityCommandBuffer>)propInfo.GetValue(bufferSystem)).IsCreated
+            )
+                throw new InvalidOperationException($"{GetType().Name}: Unable to ascertain if buffer has been played back");
+#endif
         }
 
         public void AddJobDependency(JobHandle jobHandle) => bufferSystem.AddJobHandleForProducer(jobHandle);

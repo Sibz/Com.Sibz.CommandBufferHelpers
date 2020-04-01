@@ -4,12 +4,10 @@ namespace Sibz.CommandBufferHelpers
 {
     public static class EntityCommandBufferExtensions
     {
-        public static Entity CreateSingleton<T1, T>(this CommandBuffer<T1> commandBuffer, T data)
-            where T1: EntityCommandBufferSystem
+        public static Entity CreateSingleton<T>(this ICommandBuffer commandBuffer, T data)
             where T: struct, IComponentData =>
             commandBuffer.Buffer.CreateSingleton(data);
-        public static Entity CreateSingleton<T1, T>(this CommandBuffer<T1> commandBuffer)
-            where T1: EntityCommandBufferSystem
+        public static Entity CreateSingleton<T>(this ICommandBuffer commandBuffer)
             where T: struct, IComponentData =>
             commandBuffer.Buffer.CreateSingleton<T>();
         public static Entity CreateSingleton<T>(this EntityCommandBuffer commandBuffer)
