@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 using System.Reflection;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 
@@ -20,28 +16,45 @@ namespace Sibz.CommandBufferHelpers
         EntityCommandBuffer.Concurrent Concurrent { get; }
         EntityCommandBuffer Buffer { get; }
         void AddJobDependency(JobHandle jobHandle);
+        Action NewBuffer { get; set; }
     }
+
     public class CommandBuffer<T> : ICommandBuffer
         where T : EntityCommandBufferSystem
     {
         private readonly T bufferSystem;
         private EntityCommandBuffer commandBuffer;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private List<EntityCommandBuffer> pendingBuffersList;
+        private readonly List<EntityCommandBuffer> pendingBuffersList;
 #else
         private NativeList<EntityCommandBuffer> pendingBuffersList;
 #endif
 
-        public EntityCommandBuffer Buffer =>
-            // ReSharper disable once PossibleNullReferenceException
-            commandBuffer.IsCreated && !DidPlayback
-                ? commandBuffer
-                : commandBuffer = bufferSystem.CreateCommandBuffer();
+        private bool forceNewBuffer;
+        public EntityCommandBuffer Buffer
+        {
+            get
+            {
+                // ReSharper disable once PossibleNullReferenceException
+                bool shouldNotGetNew = commandBuffer.IsCreated && !DidPlayback && !forceNewBuffer;
+                if (shouldNotGetNew)
+                {
+                    return commandBuffer;
+                }
+
+                forceNewBuffer = false;
+                commandBuffer = bufferSystem.CreateCommandBuffer();
+                NewBuffer?.Invoke();
+                return commandBuffer;
+            }
+        }
 
         private bool DidPlayback => !pendingBuffersList.Contains(commandBuffer);
 
         public EntityCommandBuffer.Concurrent Concurrent =>
             Buffer.ToConcurrent();
+
+        public void ForceNewBuffer() => forceNewBuffer = true;
 
         public CommandBuffer(World world)
         {
@@ -56,10 +69,12 @@ namespace Sibz.CommandBufferHelpers
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if ((propInfo = typeof(EntityCommandBufferSystem)
                     .GetProperty("PendingBuffers", BindingFlags.NonPublic | BindingFlags.Instance)) is null ||
-                ((pendingBuffersList = propInfo.GetValue(bufferSystem) as List<EntityCommandBuffer>) is null)
+                (pendingBuffersList = propInfo.GetValue(bufferSystem) as List<EntityCommandBuffer>) is null
             )
+            {
                 throw new InvalidOperationException(
                     $"{GetType().Name}: Unable to ascertain if buffer has been played back");
+            }
 #else
             if ((propInfo = typeof(T)
                     .GetProperty("PendingBuffers", BindingFlags.NonPublic | BindingFlags.Instance)) is null ||
@@ -70,6 +85,7 @@ namespace Sibz.CommandBufferHelpers
         }
 
         public void AddJobDependency(JobHandle jobHandle) => bufferSystem.AddJobHandleForProducer(jobHandle);
+        public Action NewBuffer { get; set; }
     }
 
     public class BeginInitCommandBuffer : CommandBuffer<BeginInitializationEntityCommandBufferSystem>

@@ -14,10 +14,7 @@ namespace Sibz.CommandBufferHelpers.Tests
             where T : struct, IComponentData => TestWorld.EntityManager.CreateEntityQuery(typeof(T));
 
         [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            new World("test must not remove");
-        }
+        public void OneTimeSetUp() => new World("test must not remove");
 
         [SetUp]
         public void SetUp()
@@ -27,21 +24,16 @@ namespace Sibz.CommandBufferHelpers.Tests
         }
 
         [TearDown]
-        public void TearDown()
-        {
-            TestWorld.Dispose();
-        }
+        public void TearDown() => TestWorld.Dispose();
 
         [Test]
-        public void WhenBufferSystemDoesNotExist_ShouldThrow()
-        {
+        public void WhenBufferSystemDoesNotExist_ShouldThrow() =>
             Assert.Catch(() => new EndInitCommandBuffer(TestWorld));
-        }
 
         [Test]
         public void BufferedCommandShouldExecuteNextFrame()
         {
-            BeginInitCommandBuffer b = new BeginInitCommandBuffer(TestWorld);
+            var b = new BeginInitCommandBuffer(TestWorld);
             b.Buffer.AddComponent<TestComponent>(b.Buffer.CreateEntity());
             BufferSystem.Update();
             Assert.AreEqual(1, GetSingletonQuery<TestComponent>().CalculateEntityCount());
@@ -50,7 +42,7 @@ namespace Sibz.CommandBufferHelpers.Tests
         [Test]
         public void ShouldRunOverMultipleFramesFine()
         {
-            BeginInitCommandBuffer b = new BeginInitCommandBuffer(TestWorld);
+            var b = new BeginInitCommandBuffer(TestWorld);
             b.Buffer.AddComponent<TestComponent>(b.Buffer.CreateEntity());
             BufferSystem.Update();
             Assert.AreEqual(1, GetSingletonQuery<TestComponent>().CalculateEntityCount());
@@ -66,32 +58,57 @@ namespace Sibz.CommandBufferHelpers.Tests
         [Test]
         public void Extension_ShouldCreateSingleton()
         {
-            BeginInitCommandBuffer b = new BeginInitCommandBuffer(TestWorld);
+            var b = new BeginInitCommandBuffer(TestWorld);
             b.CreateSingleton<TestComponent>();
             BufferSystem.Update();
             Assert.AreEqual(1, GetSingletonQuery<TestComponent>().CalculateEntityCount());
         }
+
         [Test]
         public void Extension_ShouldCreateSingletonWithData()
         {
-            BeginInitCommandBuffer b = new BeginInitCommandBuffer(TestWorld);
-            b.CreateSingleton(new TestComponentWithData { Index =  5});
+            var b = new BeginInitCommandBuffer(TestWorld);
+            b.CreateSingleton(new TestComponentWithData { Index = 5 });
             BufferSystem.Update();
             Assert.AreEqual(1, GetSingletonQuery<TestComponentWithData>().CalculateEntityCount());
         }
+
         [Test]
         public void Extension_ShouldCreateSingletonWithCorrectData()
         {
-            BeginInitCommandBuffer b = new BeginInitCommandBuffer(TestWorld);
-            b.CreateSingleton(new TestComponentWithData { Index =  5});
+            var b = new BeginInitCommandBuffer(TestWorld);
+            b.CreateSingleton(new TestComponentWithData { Index = 5 });
             BufferSystem.Update();
             Assert.AreEqual(5, GetSingletonQuery<TestComponentWithData>().GetSingleton<TestComponentWithData>().Index);
+        }
+
+        [Test]
+        public void WhenNewBufferIsCreate_ShouldInvokeCallback()
+        {
+            bool success = false;
+            var b = new BeginInitCommandBuffer(TestWorld);
+            b.NewBuffer += () => success = true;
+            b.CreateSingleton(new TestComponentWithData { Index = 5 });
+            Assert.IsTrue(success);
+        }
+
+        [Test]
+        public void WhenForced_ShouldInvokeCallback()
+        {
+            bool success = false;
+            var b = new BeginInitCommandBuffer(TestWorld);
+            b.CreateSingleton(new TestComponentWithData { Index = 5 });
+            b.NewBuffer += () => success = true;
+            b.ForceNewBuffer();
+            b.CreateSingleton(new TestComponentWithData { Index = 5 });
+            Assert.IsTrue(success);
         }
     }
 
     public struct TestComponent : IComponentData
     {
     }
+
     public struct TestComponentWithData : IComponentData
     {
         public int Index;
