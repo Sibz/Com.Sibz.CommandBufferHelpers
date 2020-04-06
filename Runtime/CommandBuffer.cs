@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Unity.Entities;
+#if !ENABLE_UNITY_COLLECTIONS_CHECKS
+using Unity.Collections;
+#endif
 using Unity.Jobs;
 
 // ReSharper disable MemberCanBePrivate.Global
