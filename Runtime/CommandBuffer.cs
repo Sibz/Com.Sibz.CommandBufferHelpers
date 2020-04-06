@@ -52,7 +52,25 @@ namespace Sibz.CommandBufferHelpers
             }
         }
 
-        private bool DidPlayback => !pendingBuffersList.Contains(commandBuffer);
+        private bool DidPlayback
+        {
+            get
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                for (int i = 0; i < pendingBuffersList.Count; i++)
+#else
+                for (int i = 0; i < pendingBuffersList.Length; i++)
+#endif
+                {
+                    if (pendingBuffersList[i].Equals(commandBuffer))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
 
         public EntityCommandBuffer.Concurrent Concurrent =>
             Buffer.ToConcurrent();
