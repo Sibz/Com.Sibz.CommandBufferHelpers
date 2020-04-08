@@ -39,6 +39,13 @@ inputDeps = Entities.WithAll<MyComponent>().ForEach((Entity entity) => {
 buffer.AddJobDependency(inputDeps);
 ```
 
+To add another concurrent buffer to another job from, you need to force a new buffer
+```c#
+buffer.ForceNewBuffer()
+```
+This will make the next `.Concurrent (or .Buffer)` property access to generate a new buffer. 
+
+
 ### EntityCommandBuffer Extensions
 #### CreateSingleton
 These extensions apply to these command buffer classes, EntityCommandBuffers and their Concurrent version.
