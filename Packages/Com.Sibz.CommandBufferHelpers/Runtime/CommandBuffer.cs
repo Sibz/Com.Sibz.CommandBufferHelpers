@@ -6,6 +6,7 @@ using Unity.Entities;
 using Unity.Collections;
 #endif
 using Unity.Jobs;
+using UnityEngine;
 
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MemberCanBeProtected.Global
@@ -113,6 +114,7 @@ namespace Sibz.CommandBufferHelpers
     {
         public BeginInitCommandBuffer(World world) : base(world)
         {
+            Debug.LogWarning("Test Warning");
         }
     }
 
