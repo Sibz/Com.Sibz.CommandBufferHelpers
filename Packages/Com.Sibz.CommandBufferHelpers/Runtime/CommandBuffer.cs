@@ -4,6 +4,7 @@ using System.Reflection;
 using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine;
+
 #if !ENABLE_UNITY_COLLECTIONS_CHECKS
 using Unity.Collections;
 #endif
@@ -31,23 +32,25 @@ namespace Sibz.CommandBufferHelpers
         private T bufferSystem;
         private EntityCommandBuffer commandBuffer;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private readonly List<EntityCommandBuffer> pendingBuffersList;
+        private List<EntityCommandBuffer> pendingBuffersList;
 #else
         private NativeList<EntityCommandBuffer> pendingBuffersList;
 #endif
 
         private bool forceNewBuffer;
+        private bool haveBeenInitialised;
 
         public World World
         {
             set
             {
-                bufferSystem = value.GetExistingSystem<T>();
-                if (bufferSystem is null)
+                if (haveBeenInitialised)
                 {
-                    throw new NullReferenceException(
-                        $"{GetType().Name}: Can not be created in world ({value.Name}) as buffer system of type {typeof(T).Name} does not exist.");
+                    throw new InvalidOperationException("Can only set World once.");
                 }
+
+                haveBeenInitialised = true;
+                Init(value);
             }
         }
 
@@ -97,7 +100,16 @@ namespace Sibz.CommandBufferHelpers
             forceNewBuffer = true;
         }
 
-        public CommandBuffer(World world) : this()
+        public CommandBuffer()
+        {
+        }
+
+        public CommandBuffer(World world)
+        {
+            World = world;
+        }
+
+        public void Init(World world)
         {
             bufferSystem = world.GetExistingSystem<T>();
             if (bufferSystem is null)
@@ -105,10 +117,7 @@ namespace Sibz.CommandBufferHelpers
                 throw new NullReferenceException(
                     $"{GetType().Name}: Can not be created in world ({world.Name}) as buffer system of type {typeof(T).Name} does not exist.");
             }
-        }
 
-        public CommandBuffer()
-        {
             PropertyInfo propInfo;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if ((propInfo = typeof(EntityCommandBufferSystem)
