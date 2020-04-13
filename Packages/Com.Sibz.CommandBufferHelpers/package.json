@@ -8,7 +8,7 @@
   "displayName": "Sibz: Command Buffer Helpers",
   "license": "ISC",
   "name": "com.sibz.command-buffer-helpers",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "repository": {
     "url": "https://github.com/Sibz/Com.Sibz.CommandBufferHelpers"
   }
