@@ -109,7 +109,7 @@ namespace Sibz.CommandBufferHelpers
             World = world;
         }
 
-        public void Init(World world)
+        private void Init(World world)
         {
             bufferSystem = world.GetExistingSystem<T>();
             if (bufferSystem is null)
