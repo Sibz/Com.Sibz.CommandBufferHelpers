@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Unity.Entities;
+using Unity.Jobs;
+using UnityEngine;
+
 #if !ENABLE_UNITY_COLLECTIONS_CHECKS
 using Unity.Collections;
 #endif
-using Unity.Jobs;
-using UnityEngine;
 
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MemberCanBeProtected.Global
@@ -19,22 +20,40 @@ namespace Sibz.CommandBufferHelpers
     {
         EntityCommandBuffer.Concurrent Concurrent { get; }
         EntityCommandBuffer Buffer { get; }
-        void AddJobDependency(JobHandle jobHandle);
         Action NewBuffer { get; set; }
+        World World { set; }
+        void AddJobDependency(JobHandle jobHandle);
+        void ForceNewBuffer();
     }
 
     public class CommandBuffer<T> : ICommandBuffer
         where T : EntityCommandBufferSystem
     {
-        private readonly T bufferSystem;
+        private T bufferSystem;
         private EntityCommandBuffer commandBuffer;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private readonly List<EntityCommandBuffer> pendingBuffersList;
+        private List<EntityCommandBuffer> pendingBuffersList;
 #else
         private NativeList<EntityCommandBuffer> pendingBuffersList;
 #endif
 
         private bool forceNewBuffer;
+        private bool haveBeenInitialised;
+
+        public World World
+        {
+            set
+            {
+                if (haveBeenInitialised)
+                {
+                    throw new InvalidOperationException("Can only set World once.");
+                }
+
+                haveBeenInitialised = true;
+                Init(value);
+            }
+        }
+
         public EntityCommandBuffer Buffer
         {
             get
@@ -76,9 +95,21 @@ namespace Sibz.CommandBufferHelpers
         public EntityCommandBuffer.Concurrent Concurrent =>
             Buffer.ToConcurrent();
 
-        public void ForceNewBuffer() => forceNewBuffer = true;
+        public void ForceNewBuffer()
+        {
+            forceNewBuffer = true;
+        }
+
+        public CommandBuffer()
+        {
+        }
 
         public CommandBuffer(World world)
+        {
+            World = world;
+        }
+
+        private void Init(World world)
         {
             bufferSystem = world.GetExistingSystem<T>();
             if (bufferSystem is null)
@@ -106,7 +137,11 @@ namespace Sibz.CommandBufferHelpers
 #endif
         }
 
-        public void AddJobDependency(JobHandle jobHandle) => bufferSystem.AddJobHandleForProducer(jobHandle);
+        public void AddJobDependency(JobHandle jobHandle)
+        {
+            bufferSystem.AddJobHandleForProducer(jobHandle);
+        }
+
         public Action NewBuffer { get; set; }
     }
 
