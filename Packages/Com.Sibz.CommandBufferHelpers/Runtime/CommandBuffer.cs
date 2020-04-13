@@ -97,7 +97,7 @@ namespace Sibz.CommandBufferHelpers
             forceNewBuffer = true;
         }
 
-        public CommandBuffer(World world)
+        public CommandBuffer(World world) : this()
         {
             bufferSystem = world.GetExistingSystem<T>();
             if (bufferSystem is null)
@@ -105,7 +105,10 @@ namespace Sibz.CommandBufferHelpers
                 throw new NullReferenceException(
                     $"{GetType().Name}: Can not be created in world ({world.Name}) as buffer system of type {typeof(T).Name} does not exist.");
             }
+        }
 
+        public CommandBuffer()
+        {
             PropertyInfo propInfo;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if ((propInfo = typeof(EntityCommandBufferSystem)
