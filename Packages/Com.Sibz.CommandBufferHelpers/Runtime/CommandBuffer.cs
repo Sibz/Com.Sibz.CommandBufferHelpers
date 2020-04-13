@@ -149,7 +149,6 @@ namespace Sibz.CommandBufferHelpers
     {
         public BeginInitCommandBuffer(World world) : base(world)
         {
-            Debug.LogWarning("Test Warning");
         }
     }
 
