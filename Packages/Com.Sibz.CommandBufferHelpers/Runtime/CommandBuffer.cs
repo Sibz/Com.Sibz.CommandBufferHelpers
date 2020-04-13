@@ -125,9 +125,9 @@ namespace Sibz.CommandBufferHelpers
         }
     }
 
-    public class BeingSimCommandBuffer : CommandBuffer<BeginSimulationEntityCommandBufferSystem>
+    public class BeginSimCommandBuffer : CommandBuffer<BeginSimulationEntityCommandBufferSystem>
     {
-        public BeingSimCommandBuffer(World world) : base(world)
+        public BeginSimCommandBuffer(World world) : base(world)
         {
         }
     }
