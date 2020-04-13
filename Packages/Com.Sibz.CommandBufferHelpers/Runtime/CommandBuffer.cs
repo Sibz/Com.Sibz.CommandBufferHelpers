@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using Unity.Entities;
 using Unity.Jobs;
-using UnityEngine;
 
 #if !ENABLE_UNITY_COLLECTIONS_CHECKS
 using Unity.Collections;
@@ -147,6 +146,10 @@ namespace Sibz.CommandBufferHelpers
 
     public class BeginInitCommandBuffer : CommandBuffer<BeginInitializationEntityCommandBufferSystem>
     {
+        public BeginInitCommandBuffer()
+        {
+        }
+
         public BeginInitCommandBuffer(World world) : base(world)
         {
         }
@@ -154,6 +157,10 @@ namespace Sibz.CommandBufferHelpers
 
     public class EndInitCommandBuffer : CommandBuffer<EndInitializationEntityCommandBufferSystem>
     {
+        public EndInitCommandBuffer()
+        {
+        }
+
         public EndInitCommandBuffer(World world) : base(world)
         {
         }
@@ -161,6 +168,10 @@ namespace Sibz.CommandBufferHelpers
 
     public class BeginSimCommandBuffer : CommandBuffer<BeginSimulationEntityCommandBufferSystem>
     {
+        public BeginSimCommandBuffer()
+        {
+        }
+
         public BeginSimCommandBuffer(World world) : base(world)
         {
         }
@@ -168,6 +179,10 @@ namespace Sibz.CommandBufferHelpers
 
     public class EndSimCommandBuffer : CommandBuffer<EndSimulationEntityCommandBufferSystem>
     {
+        public EndSimCommandBuffer()
+        {
+        }
+
         public EndSimCommandBuffer(World world) : base(world)
         {
         }
@@ -175,6 +190,10 @@ namespace Sibz.CommandBufferHelpers
 
     public class BeginPresCommandBuffer : CommandBuffer<BeginPresentationEntityCommandBufferSystem>
     {
+        public BeginPresCommandBuffer()
+        {
+        }
+
         public BeginPresCommandBuffer(World world) : base(world)
         {
         }
